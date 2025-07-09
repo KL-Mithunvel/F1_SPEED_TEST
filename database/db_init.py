@@ -1,11 +1,15 @@
-import sqlite3
+import os
+import csv
 from config import DB_PATH
 
 def init_db():
-
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    line= " CREATE TABLE IF NOT EXISTS leaderboard (id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL, score INTEGER NOT NULL);"
-    cur.execute(line)
-    conn.commit()
-    conn.close()
+    if not os.path.isfile(DB_PATH):
+        try:
+            with open(DB_PATH, mode='w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(["id", "name", "score"])
+            print(f"Created new leaderboard file: {DB_PATH}")
+        except Exception as e:
+            print(f"[ERROR] Failed to create CSV: {e}")
+    else:
+        print(f"Leaderboard file already exists at: {DB_PATH}")
