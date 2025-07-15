@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 import time
 import random
+import threading
 from config import LED, SWITCH
 from database.db_access import insert_score, fetch_top_scores
 from game_logic import gpio_handler as gpio
@@ -28,26 +29,23 @@ class BatakGameGUI:
         self.build_layout()
 
     def build_layout(self):
-        # --- Main Body Frame ---
         body_frame = tk.Frame(self.root, bg='orange')
         body_frame.pack(fill='both', expand=True)
 
-        # --- Left Game Area ---
         self.left_frame = tk.Frame(body_frame, padx=60, pady=40, bg='orange')
         self.left_frame.pack(side='left', fill='both', expand=True)
 
-        # --- Right Leaderboard Area ---
         self.right_frame = tk.Frame(body_frame, width=500, padx=20, pady=20, bg='white')
         self.right_frame.pack(side='right', fill='y')
         self.right_frame.pack_propagate(False)
 
-        # --- Club Name ---
+        # Club name
         club_label_frame = tk.Frame(self.left_frame, bg='orange')
         club_label_frame.pack(anchor='w', pady=(0, 30))
         tk.Label(club_label_frame, text="AUTO", font=("Arial", 28, "bold"), fg="red", bg="orange").pack(side='left')
         tk.Label(club_label_frame, text="VIT", font=("Arial", 28, "bold"), fg="black", bg="orange").pack(side='left')
 
-        # --- Timer and Score ---
+        # Timer and score
         timer_score_row = tk.Frame(self.left_frame, bg='orange')
         timer_score_row.pack(pady=40)
 
@@ -57,22 +55,20 @@ class BatakGameGUI:
         tk.Label(timer_score_row, text="🎯 SCORE", font=("Arial", 22, "bold"), bg='orange').grid(row=0, column=1, padx=20)
         tk.Label(timer_score_row, textvariable=self.score_var, font=("Arial", 26), bg='orange').grid(row=1, column=1, padx=20)
 
-        # --- GPIO Debug Info ---
-        tk.Label(self.left_frame, textvariable=self.gpio_debug_var,
-                 font=("Courier", 14), bg='orange', fg='black').pack(pady=(10, 20))
+        # GPIO debug
+        tk.Label(self.left_frame, textvariable=self.gpio_debug_var, font=("Courier", 14), bg='orange', fg='black').pack(pady=(10, 20))
 
-        # --- Name Entry ---
+        # Name entry
         tk.Label(self.left_frame, text="🧑‍💻 Enter Your Name", font=("Arial", 20), bg='orange').pack(pady=(30, 10))
         tk.Entry(self.left_frame, textvariable=self.name_var, font=("Arial", 18), width=28).pack()
 
-        # --- Start Button ---
+        # Start button
         self.start_btn = tk.Button(self.left_frame, text="🚀 Start Game", font=("Arial", 18), command=self.start_game)
         self.start_btn.pack(pady=40)
 
-        # --- Leaderboard Title ---
+        # Leaderboard
         tk.Label(self.right_frame, text="🏆 Leaderboard (Top 10)", font=("Arial", 20, "bold"), bg='white').pack(anchor='n', pady=(0, 15))
 
-        # --- Scrollable Leaderboard ---
         self.lb_canvas = tk.Canvas(self.right_frame, bg='white', width=480, highlightthickness=0)
         self.lb_scrollbar = tk.Scrollbar(self.right_frame, orient="vertical", command=self.lb_canvas.yview)
         self.lb_inner_frame = tk.Frame(self.lb_canvas, bg='white')
@@ -85,8 +81,6 @@ class BatakGameGUI:
         self.lb_scrollbar.pack(side="right", fill="y")
 
         self.refresh_leaderboard()
-
-        # Escape to exit fullscreen
         self.root.bind("<Escape>", lambda e: self.root.destroy())
 
     def refresh_leaderboard(self):
@@ -97,14 +91,8 @@ class BatakGameGUI:
         for i, entry in enumerate(leaderboard, 1):
             medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else "🔢"
             text = f"{medal} {i:>2}. {entry['name']:<14} 💯 {entry['score']}"
-            tk.Label(
-                self.lb_inner_frame,
-                text=text,
-                font=("Courier New", 18),
-                bg='white',
-                anchor='w',
-                justify='left'
-            ).pack(fill='x', padx=15, pady=10)
+            tk.Label(self.lb_inner_frame, text=text, font=("Courier New", 18),
+                     bg='white', anchor='w', justify='left').pack(fill='x', padx=15, pady=10)
 
     def start_game(self):
         name = self.name_var.get().strip()
@@ -113,15 +101,14 @@ class BatakGameGUI:
             return
 
         gpio.setup_gpio()
-
         self.start_btn.config(state=tk.DISABLED)
         self.running = True
         self.score = 0
         self.score_var.set("0")
         self.start_time = int(time.time() * 1000)
-        self.last_action_time = 0
 
         self.update_timer()
+        threading.Thread(target=self.game_loop, daemon=True).start()
 
     def update_timer(self):
         if not self.running:
@@ -136,26 +123,30 @@ class BatakGameGUI:
         self.timer_var.set(f"{minutes:02d}:{seconds:02d}.{millis:03d}")
 
         if remaining > 0:
-            if now - self.last_action_time > 2500:
-                self.last_action_time = now
-
-                index = gpio.get_random_index()
-                gpio.turn_on_led(index)
-
-                led_pin = LED[index]
-                btn_pin = SWITCH[index]
-                self.gpio_debug_var.set(f"LED: Pin {led_pin} | Expect: Button {btn_pin}")
-
-                hit = gpio.wait_for_button(index, timeout=2.0)
-                gpio.turn_off_led(index)
-
-                if hit:
-                    self.score += 1
-                    self.score_var.set(str(self.score))
-
-            self.timer_id = self.root.after(50, self.update_timer)
+            self.root.after(50, self.update_timer)
         else:
             self.end_game()
+
+    def game_loop(self):
+        while self.running:
+            now = int(time.time() * 1000)
+            remaining = max(0, TIMER_DURATION - (now - self.start_time))
+            if remaining <= 0:
+                break
+
+            index = gpio.get_random_index()
+            gpio.turn_on_led(index)
+            pin_led = LED[index]
+            pin_btn = SWITCH[index]
+            self.gpio_debug_var.set(f"LED: Pin {pin_led} | Expect: Button {pin_btn}")
+
+            # Wait until correct button is pressed
+            hit = gpio.wait_for_button(index, timeout=remaining / 1000)
+            gpio.turn_off_led(index)
+
+            if hit and self.running:
+                self.score += 1
+                self.score_var.set(str(self.score))
 
     def end_game(self):
         self.running = False
@@ -169,7 +160,6 @@ class BatakGameGUI:
 
         insert_score(self.name_var.get().strip(), self.score)
         self.refresh_leaderboard()
-
         self.start_btn.config(state=tk.NORMAL)
         self.timer_var.set("02:00.000")
 
