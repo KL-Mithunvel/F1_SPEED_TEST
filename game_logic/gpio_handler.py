@@ -28,10 +28,6 @@ def get_random_index():
     return random.randint(0, len(LED) - 1)
 
 def wait_for_button(index, timeout=2.0):
-    """
-    Waits up to 'timeout' seconds for the correct button to be pressed.
-    Returns True if pressed in time, False otherwise.
-    """
     start_time = time.time()
     while time.time() - start_time < timeout:
         if GPIO.input(SWITCH[index]) == GPIO.HIGH:
