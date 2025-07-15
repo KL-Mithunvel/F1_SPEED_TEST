@@ -109,18 +109,27 @@ class BatakGameGUI:
             label.pack(fill='x', padx=15, pady=10)
 
     def start_game(self):
+        from game_logic import gpio_handler as gpio
+
         name = self.name_var.get().strip()
         if not name:
             messagebox.showwarning("Input Error", "Please enter your name before starting.")
             return
 
+        # GPIO Setup
+        gpio.setup_gpio()
+
         self.start_btn.config(state=tk.DISABLED)
         self.running = True
+        self.score = 0
         self.score_var.set("0")
         self.start_time = int(time.time() * 1000)
+
         self.update_timer()
 
     def update_timer(self):
+        from game_logic import gpio_handler as gpio
+
         if not self.running:
             return
 
@@ -132,23 +141,41 @@ class BatakGameGUI:
         millis = remaining % 1000
         self.timer_var.set(f"{minutes:02d}:{seconds:02d}.{millis:03d}")
 
+        # Light a random LED and wait for button press (if time remains)
         if remaining > 0:
+            index = gpio.get_random_index()
+            gpio.turn_on_led(index)
+
+            hit = gpio.wait_for_button(index, timeout=2.0)
+            gpio.turn_off_led(index)
+
+            if hit:
+                self.score += 1
+                self.score_var.set(str(self.score))
+
+            # Schedule next update
             self.timer_id = self.root.after(50, self.update_timer)
         else:
             self.end_game()
 
     def end_game(self):
+        from game_logic import gpio_handler as gpio
+
         self.running = False
-        self.root.after_cancel(self.timer_id)
+        try:
+            self.root.after_cancel(self.timer_id)
+        except:
+            pass
 
-        score = random.randint(10, 999)  # simulate 3-digit scores
-        self.score_var.set(f"{score}")
+        gpio.turn_off_all_leds()
+        gpio.cleanup_gpio()
 
-        insert_score(self.name_var.get().strip(), score)
+        insert_score(self.name_var.get().strip(), self.score)
         self.refresh_leaderboard()
 
         self.start_btn.config(state=tk.NORMAL)
         self.timer_var.set("02:00.000")
+
 
 def launch_gui():
     root = tk.Tk()
