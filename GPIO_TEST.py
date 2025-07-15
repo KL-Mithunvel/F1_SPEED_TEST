@@ -14,32 +14,25 @@ def cleanup():
     GPIO.cleanup()
 
 def test_gpio():
-    print("Starting GPIO test...")
+    print("Starting GPIO test... (Press the correct button to continue each step)\n")
 
     for i in range(len(LED)):
         led_pin = LED[i]
         switch_pin = SWITCH[i]
 
-        print(f"\nTesting LED {i + 1} (Pin {led_pin}) with Switch (Pin {switch_pin})")
+        print(f"Testing LED {i + 1} (Pin {led_pin}) with Button (Pin {switch_pin})")
         GPIO.output(led_pin, GPIO.HIGH)
-        print("LED ON. Waiting for button press (5 seconds)...")
+        print("➡️  LED ON. Waiting for button press...")
 
-        start_time = time.time()
-        pressed = False
-        while time.time() - start_time < 5:
-            if GPIO.input(switch_pin) == GPIO.HIGH:
-                pressed = True
-                break
+        # Wait until the correct button is pressed
+        while GPIO.input(switch_pin) == GPIO.LOW:
             time.sleep(0.05)
 
         GPIO.output(led_pin, GPIO.LOW)
+        print("✅ Button press detected.\n")
+        time.sleep(0.3)  # short debounce delay
 
-        if pressed:
-            print("✅ Button press detected.")
-        else:
-            print("❌ Button not pressed in time.")
-
-    print("\nTest complete.")
+    print("🎉 All GPIOs tested successfully!")
     cleanup()
 
 if __name__ == "__main__":
@@ -47,5 +40,5 @@ if __name__ == "__main__":
         setup()
         test_gpio()
     except KeyboardInterrupt:
-        print("\nInterrupted by user.")
+        print("\n🛑 Interrupted by user.")
         cleanup()
