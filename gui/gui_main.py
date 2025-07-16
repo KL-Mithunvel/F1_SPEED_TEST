@@ -59,7 +59,7 @@ class BatakGameGUI:
         tk.Label(self.left_frame, textvariable=self.gpio_debug_var, font=("Courier", 14), bg='orange', fg='black').pack(pady=(10, 20))
 
         # Name entry
-        tk.Label(self.left_frame, text="🧑‍💻 Enter Your Name", font=("Arial", 20), bg='orange').pack(pady=(30, 10))
+        tk.Label(self.left_frame, text="👾 Enter Your Name", font=("Arial", 20), bg='orange').pack(pady=(30, 10))
         tk.Entry(self.left_frame, textvariable=self.name_var, font=("Arial", 18), width=28).pack()
 
         # Start button
@@ -90,7 +90,7 @@ class BatakGameGUI:
         leaderboard = fetch_top_scores()
         for i, entry in enumerate(leaderboard, 1):
             medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else "🔢"
-            text = f"{medal} {i:>2}. {entry['name']:<14} 💯 {entry['score']}"
+            text = f"{medal} {i:>2}. {entry['name']:<14}  {entry['score']}"
             tk.Label(self.lb_inner_frame, text=text, font=("Courier New", 18),
                      bg='white', anchor='w', justify='left').pack(fill='x', padx=15, pady=10)
 
