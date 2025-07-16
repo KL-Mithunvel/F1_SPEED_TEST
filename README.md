@@ -54,6 +54,7 @@ This is a real-time light reaction game built with **Tkinter GUI**, **GPIO LEDs 
 
 ---
 
+
 ## 📂 Project Structure
 
 ```plaintext
@@ -64,11 +65,12 @@ This is a real-time light reaction game built with **Tkinter GUI**, **GPIO LEDs 
 │   ├── db_access.py          # CSV read/write for leaderboard
 │   └── leaderboard.csv       # Stores name and score
 ├── gui/
-│   └── gui_main.py           # GUI logic with score/timer/leaderboard
+│   └── gui_main.py           # GUI logic with emoji support, timer, leaderboard
 ├── game_logic/
 │   ├── gpio_handler.py       # LED/button logic using RPi.GPIO
 │   └── gpio_test.py          # Standalone hardware test utility
 ```
+
 ## 🚀 Running the Game
 
 Run this from the main directory:
@@ -108,12 +110,11 @@ python3 game_logic/gpio_test.py
 - Waits for the correct button press
 - Moves to next when pressed
 - Use this to verify correct wiring
-- 
+  
 ## 🏆 Leaderboard Storage
 
 Scores are stored in:
-
-database/leaderboard.csv
+leaderboard.csv
 
 Format: `name,score`  
 Automatically updated after each game.
@@ -132,8 +133,15 @@ Automatically updated after each game.
 
 ## 🙌 Credits
 
-Developed by **MOVIS | AUTO VIT Team**  
+Developed by **AUTO VIT Team**  
 Special thanks to all testers and contributors 🙏
+    - Mithunvel KL 
+    - Kiran S
+    - Kishore Priyan S
+    - Kiran T
+    - Krishna R
+    - Ashwin AKA robin
+
 
 ---
 
