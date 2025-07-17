@@ -1,36 +1,35 @@
 import time
-import board
-import neopixel
+from rpi_ws281x import PixelStrip, Color
 
-# === CONFIG ===
-LED_COUNT = 16       # Number of LEDs in the ring
-GPIO_PIN = board.D18 # Change this to your actual GPIO pin (e.g., board.D21)
-BRIGHTNESS = 0.3     # 0.0 to 1.0
+# LED configuration:
+LED_COUNT = 16          # Number of LEDs in one ring
+LED_PIN = 18            # GPIO18 (must support PWM!)
+LED_FREQ_HZ = 800000    # LED signal frequency (Hz)
+LED_DMA = 10            # DMA channel to use
+LED_BRIGHTNESS = 64     # Brightness (0-255)
+LED_INVERT = False      # Invert signal (False for Pi)
+LED_CHANNEL = 0
 
-# === INIT ===
-pixels = neopixel.NeoPixel(
-    GPIO_PIN,
-    LED_COUNT,
-    brightness=BRIGHTNESS,
-    auto_write=False,
-    pixel_order=neopixel.GRB
-)
+# Create PixelStrip object
+strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT,
+                   LED_BRIGHTNESS, LED_CHANNEL)
+strip.begin()
 
-# === ACTION ===
-def show_color(color, duration):
-    pixels.fill(color)
-    pixels.show()
-    print(f"Showing color {color} for {duration} seconds...")
-    time.sleep(duration)
+def show_color(color, delay_sec):
+    for i in range(strip.numPixels()):
+        strip.setPixelColor(i, color)
+    strip.show()
+    print(f"Showing color {color} for {delay_sec} seconds...")
+    time.sleep(delay_sec)
 
 try:
-    show_color((255, 0, 0), 5)   # Red
-    show_color((0, 255, 0), 5)   # Green
-    pixels.fill((0, 0, 0))
-    pixels.show()
-    print("Done. LEDs turned off.")
+    show_color(Color(255, 0, 0), 5)   # Red
+    show_color(Color(0, 255, 0), 5)   # Green
+    show_color(Color(0, 0, 0), 1)     # Off
+    print("✅ Test complete.")
 
 except KeyboardInterrupt:
-    pixels.fill((0, 0, 0))
-    pixels.show()
-    print("Interrupted. LEDs off.")
+    for i in range(strip.numPixels()):
+        strip.setPixelColor(i, Color(0, 0, 0))
+    strip.show()
+    print("🛑 Interrupted. LEDs off.")
