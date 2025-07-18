@@ -138,11 +138,11 @@ Automatically updated after each game.
 
 Developed by **AUTO VIT Team**  
 Special thanks to all testers and contributors 🙏
-- Mithunvel KL 
-- Kiran S
-- Kishore Priyan S
-- Kiran T
-- Krishna R
+- Mithunvel KL AKA BATMAN 
+- Kiran S AKA tamil one
+- Kishore Priyan S AKA welding boy 
+- Kiran T AKA bgl one
+- Krishna R AKA ...
 - Ashwin AKA robin
 - Harini AKA HANI
 
