@@ -1,4 +1,4 @@
 LED=[3,5,7,11,13,15,19]
 SWITCH=[21,23,29,31,33,35,37]
-TIMER_DURATION = 120  # seconds
+TIMER_DURATION = 120  
 DB_PATH = 'leaderboard.csv'
