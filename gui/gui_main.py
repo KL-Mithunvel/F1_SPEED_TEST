@@ -7,7 +7,7 @@ from config import LED, SWITCH
 from database.db_access import insert_score, fetch_top_scores
 from game_logic import gpio_handler as gpio
 
-TIMER_DURATION = 120_000  # 2 minutes in milliseconds
+TIMER_DURATION = 120_000 
 
 class BatakGameGUI:
     def __init__(self, root):
